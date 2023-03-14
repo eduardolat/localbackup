@@ -1,9 +1,18 @@
 {
   "name": "easybackups",
-  "version": "1.0.0",
-  "description": "",
-  "main": "./dist/bundle.js",
-  "keywords": [],
+  "version": "0.0.1",
+  "description": "Utility to make local backups easily and without much hassle.",
+  "keywords": [
+    "backup",
+    "backups",
+    "backup-utility",
+    "backup-tool",
+    "backup-script",
+    "backup-cli",
+    "local-backup",
+    "zip",
+    "tar"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/eduardolat/easybackups.git",
@@ -11,11 +20,11 @@
   },
   "homepage": "https://github.com/eduardolat/easybackups#readme",
   "bugs": {
-    "url": "https://github.com/eduardolat/easybackups/issues",
-    "email": "support@tawk.to"
+    "url": "https://github.com/eduardolat/easybackups/issues"
   },
   "author": "Eduardo Girón <eduardo.devop@gmail.com> (https://eduardo.lat)",
   "license": "MIT",
+  "main": "./dist/bundle.js",
   "bin": {
     "easybackups": "./dist/bundle.js"
   },
