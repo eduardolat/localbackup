@@ -21,7 +21,7 @@ export async function createBackup (props: {
   if (!isDir(props.source)) {
     const tmpdir = os.tmpdir()
     const filename = path.basename(props.source)
-    const tmpsource = path.join(tmpdir, `easybackups-tmp-${crypto.randomUUID()}`)
+    const tmpsource = path.join(tmpdir, `localbackup-tmp-${crypto.randomUUID()}`)
     const tmppath = path.join(tmpsource, filename)
 
     fse.ensureDirSync(tmpsource)

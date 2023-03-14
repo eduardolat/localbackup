@@ -13,7 +13,7 @@ import { deleteOldBackups } from './deleteOldBackups'
 import { DATE_FORMAT } from './constants'
 
 clear()
-console.log(chalk.green(boxen(chalk.bold('Easy Backups 🦄'), { padding: 1, borderStyle: 'double' })))
+console.log(chalk.green(boxen(chalk.bold('Local Backup 🦄'), { padding: 1, borderStyle: 'double' })))
 console.log('')
 
 program
@@ -94,7 +94,7 @@ async function main (): Promise<void> {
 
   console.log(chalk.green('\nBackup completed successfully!\n'))
   console.log(chalk.bold('Please give this project a star on GitHub if you like it:'))
-  console.log(chalk.bgBlue.bold('⭐️ https://github.com/eduardolat/easybackups\n'))
+  console.log(chalk.bgBlue.bold('⭐️ https://github.com/eduardolat/localbackup\n'))
 }
 
 main().catch(console.error)

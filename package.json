@@ -1,5 +1,5 @@
 {
-  "name": "easybackups",
+  "name": "localbackup",
   "version": "0.0.1",
   "description": "Utility to make local backups easily and without much hassle.",
   "keywords": [
@@ -15,12 +15,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/eduardolat/easybackups.git",
-    "repository": "eduardolat/easybackups"
+    "url": "https://github.com/eduardolat/localbackup.git",
+    "repository": "eduardolat/localbackup"
   },
-  "homepage": "https://github.com/eduardolat/easybackups#readme",
+  "homepage": "https://github.com/eduardolat/localbackup#readme",
   "bugs": {
-    "url": "https://github.com/eduardolat/easybackups/issues"
+    "url": "https://github.com/eduardolat/localbackup/issues"
   },
   "author": "Eduardo Girón <eduardo.devop@gmail.com> (https://eduardo.lat)",
   "license": "MIT",
@@ -31,7 +31,7 @@
     "build": "pnpm clean:build && pnpm build:tsc && pnpm build:bundle",
     "build:tsc": "tsc",
     "build:bundle": "esbuild ./dist/index.js --bundle --outfile=./dist/bundle.js --format=cjs --platform=node",
-    "package": "pkg ./dist/bundle.js --target node16-linux-x64,node16-macos-x64,node16-win-x64 --output ./dist/bin/easybackups",
+    "package": "pkg ./dist/bundle.js --target node16-linux-x64,node16-macos-x64,node16-win-x64 --output ./dist/bin/localbackup",
     "clean:build": "rimraf ./dist",
     "runcli": "node ./dist/bundle.js",
     "buildandrun": "pnpm build && pnpm runcli",
