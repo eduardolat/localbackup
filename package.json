@@ -1,7 +1,7 @@
 {
   "name": "localbackup",
   "version": "0.0.2",
-  "description": "Utility to make local backups easily and without much hassle.",
+  "description": "Utility to make local backups easily and without the hassle.",
   "keywords": [
     "backup",
     "backups",
