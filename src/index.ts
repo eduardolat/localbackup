@@ -25,6 +25,11 @@ program
   .option('-k, --keeplast <number>', 'number of backups to keep (olders with the same prefix will be deleted)')
   .option('-f, --force', 'force destination folder creation if it does not exist', false)
 
+// Show help if no arguments are passed
+if (process.argv.length < 3) {
+  program.help()
+}
+
 program.parse()
 const options = program.opts<{
   yes: boolean
