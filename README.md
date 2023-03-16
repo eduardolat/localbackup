@@ -10,7 +10,7 @@
   </a>
 </p>
 
-Utility to make local backups easily and without the hassle.
+Utility to make local backups easily and without the hassle. **If you like the project you can leave a star! ⭐️**
 
 ## Basic Usage
 
