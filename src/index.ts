@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 
-import { program } from 'commander'
+import path from 'node:path'
 import clear from 'clear'
 import chalk from 'chalk'
 import boxen from 'boxen'
 import yesno from 'yesno'
 import dayjs from 'dayjs'
-import path from 'node:path'
-import { areOptionsFilesValid } from './areOptionsFilesValid'
-import { createBackup } from './createBackup'
-import { deleteOldBackups } from './deleteOldBackups'
+import fse from 'fs-extra'
+import { program } from 'commander'
 import { DATE_FORMAT } from './constants'
+import { createTempBackup } from './createTempBackup'
+import { deleteOldBackups } from './deleteOldBackups'
+import { storageProvidersNames } from './storageProviders'
+import { uploadBackup } from './uploadBackup'
+import { deleteTempBackup } from './deleteTempBackup'
 
 clear()
 console.log(chalk.green(boxen(chalk.bold('Local Backup 🦄'), { padding: 1, borderStyle: 'double' })))
@@ -23,7 +26,7 @@ program
   .option('-t, --filetype <string>', 'file type of the backup file (zip or tar)', 'zip')
   .option('-p, --prefix <string>', 'prefix to be added to the backup file name', 'backup')
   .option('-k, --keeplast <number>', 'number of backups to keep (olders with the same prefix will be deleted)')
-  .option('-f, --force', 'force destination folder creation if it does not exist', false)
+  .option('-sp, --storageprovider <string>', `storage provider to use (${storageProvidersNames.join(', ')})`, 'local')
 
 // Show help if no arguments are passed
 if (process.argv.length < 3) {
@@ -38,7 +41,7 @@ const options = program.opts<{
   filetype: 'zip' | 'tar'
   prefix: string
   keeplast: string | undefined
-  force: boolean
+  storageprovider: string
 }>()
 
 async function main (): Promise<void> {
@@ -48,17 +51,20 @@ async function main (): Promise<void> {
     return
   }
 
+  // Check if the storage provider is valid
+  if (!storageProvidersNames.includes(options.storageprovider)) {
+    console.log(chalk.red(`\nInvalid storage provider, please use one of the following: ${storageProvidersNames.join(', ')}\n`))
+    return
+  }
+
   const source = path.normalize(options.source)
   const targetDir = path.normalize(options.destdir)
-  const targetFileName = `${options.prefix}-${dayjs().format(DATE_FORMAT)}.${options.filetype}`
-  const targetFilePath = path.join(targetDir, targetFileName)
+  const destinationFileName = `${options.prefix}-${dayjs().format(DATE_FORMAT)}.${options.filetype}`
+  const destinationFilePath = path.join(targetDir, destinationFileName)
 
-  const filesValid = areOptionsFilesValid({
-    source,
-    targetDir,
-    forceTargetDir: options.force
-  })
-  if (!filesValid) {
+  // Check if the source file/dir exists
+  if (!fse.existsSync(source)) {
+    console.log(chalk.red('\nThe source file or directory does not exist\n'))
     return
   }
 
@@ -66,7 +72,7 @@ async function main (): Promise<void> {
   console.log('')
   console.log(chalk.bold('Source  file/dir:'), source)
   console.log(chalk.bold('Target directory:'), targetDir)
-  console.log(chalk.bold('Target file path:'), targetFilePath)
+  console.log(chalk.bold('Target file path:'), destinationFilePath)
   console.log('')
 
   if (!options.yes) {
@@ -82,15 +88,28 @@ async function main (): Promise<void> {
     }
   }
 
-  // Create backup
-  await createBackup({
+  // Create local temporal backup
+  const compressedFilePath = await createTempBackup({
     source,
-    targetFilePath,
+    destinationFileName,
     fileType: options.filetype
   })
 
-  // Delete old backups
+  // Upload backup to provider
+  await uploadBackup({
+    storageProvider: options.storageprovider,
+    localFilePath: compressedFilePath,
+    destinationFilePath
+  })
+
+  // Delete temporal backup
+  await deleteTempBackup({
+    localFilePath: compressedFilePath
+  })
+
+  // Delete old backups from provider
   await deleteOldBackups({
+    storageProvider: options.storageprovider,
     prefix: options.prefix,
     targetDirectory: targetDir,
     fileType: options.filetype,

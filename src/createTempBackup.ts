@@ -1,27 +1,28 @@
-import chalk from 'chalk'
-import ora from 'ora'
-import fse from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import chalk from 'chalk'
+import ora from 'ora'
+import fse from 'fs-extra'
 import { zip, tar } from 'zip-a-folder'
 import { isDir } from './helpers/isDir'
 
-export async function createBackup (props: {
+export async function createTempBackup (props: {
   source: string
-  targetFilePath: string
+  destinationFileName: string
   fileType: 'zip' | 'tar'
-}): Promise<void> {
-  const spinner = ora('Creating backup...').start()
+}): Promise<string> {
+  const spinner = ora('Creating temporal backup file...').start()
+  const tmpdir = path.join(os.tmpdir(), `localbackup-tmp-${crypto.randomUUID()}`)
+  fse.ensureDirSync(tmpdir)
 
   let source = props.source
   let isTemporal = false
 
   // Ensure the source is a directory
   if (!isDir(props.source)) {
-    const tmpdir = os.tmpdir()
     const filename = path.basename(props.source)
-    const tmpsource = path.join(tmpdir, `localbackup-tmp-${crypto.randomUUID()}`)
+    const tmpsource = path.join(tmpdir, 'source')
     const tmppath = path.join(tmpsource, filename)
 
     fse.ensureDirSync(tmpsource)
@@ -31,13 +32,18 @@ export async function createBackup (props: {
     isTemporal = true
   }
 
+  // Create the target directory
+  const targetdir = path.join(tmpdir, 'target')
+  const targetfilepath = path.join(targetdir, props.destinationFileName)
+  fse.ensureDirSync(targetdir)
+
   // Create the backup
   if (props.fileType === 'zip') {
-    await zip(source, props.targetFilePath)
+    await zip(source, targetfilepath)
   }
 
   if (props.fileType === 'tar') {
-    await tar(source, props.targetFilePath)
+    await tar(source, targetfilepath)
   }
 
   // Remove temporal directory if it was created
@@ -46,5 +52,7 @@ export async function createBackup (props: {
   }
 
   spinner.stop()
-  console.log(chalk.gray('✅ Backup created'))
+  console.log(chalk.gray('✅ Temporal backup file created'))
+
+  return targetfilepath
 }

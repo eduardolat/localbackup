@@ -1,14 +1,15 @@
 import path from 'node:path'
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import fse from 'fs-extra'
 import ora from 'ora'
 import chalk from 'chalk'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { DATE_FORMAT } from './constants'
+import { storageProviders } from './storageProviders'
 
 dayjs.extend(customParseFormat)
 
 export async function deleteOldBackups (props: {
+  storageProvider: string
   targetDirectory: string
   prefix: string
   fileType: 'zip' | 'tar'
@@ -16,17 +17,19 @@ export async function deleteOldBackups (props: {
 }): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!props.keepLast) return
-
   const keepLast = parseInt(props.keepLast, 10)
   if (keepLast < 1) return
 
   const spinner = ora('Deleting old backups...').start()
 
+  // Get the storage provider
+  const provider = storageProviders[props.storageProvider]
+
   // Get all files in the target directory that match the prefix and file type
-  const dir = await fse.promises.opendir(props.targetDirectory)
+  const dirFileNames = await provider.listFiles(props.targetDirectory)
   let matches: string[] = []
-  for await (const dirent of dir) {
-    const fileName = dirent.name
+  for await (const filePath of dirFileNames) {
+    const fileName = path.basename(filePath)
     const isMatch = fileName.startsWith(props.prefix) && fileName.endsWith(props.fileType)
     if (isMatch) {
       matches.push(fileName)
@@ -48,7 +51,7 @@ export async function deleteOldBackups (props: {
 
   // Delete files
   for await (const fileName of toDelete) {
-    fse.removeSync(path.join(props.targetDirectory, fileName))
+    await provider.deleteFile(path.join(props.targetDirectory, fileName))
   }
 
   spinner.stop()

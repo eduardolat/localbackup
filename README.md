@@ -10,7 +10,7 @@
   </a>
 </p>
 
-Utility to make local backups easily and without the hassle. **If you like the project you can leave a star! ⭐️**
+Utility to make local backups (and now remote) easily and without the hassle. **If you like the project you can leave a star! ⭐️**
 
 ## Basic Usage
 
@@ -54,16 +54,16 @@ npx localbackup --help
 
 Options:
 
-| Option | Description |
-| ---    | ---         |
-| **-s, --source**     | full path of the file or directory to be backed up |
-| **-d, --destdir**    | full path of the destination directory where the backup file will be stored |
-| **-t, --filetype**   | file type of the backup file (zip or tar) (default: "zip") |
-| **-p, --prefix**     | prefix to be added to the backup file name (default: "backup") |
-| **-k, --keeplast**   | number of backups to keep (olders with the same prefix will be deleted) |
-| **-f, --force**      | force destination folder creation if it does not exist (default: false) |
-| **-y, --yes**        | answer yes to all questions (default: false) |
-| **-h, --help**       | display help for command |
+| Option | Description        |
+| ---    | ---                |
+| **-s, --source**            | full path of the file or directory to be backed up |
+| **-d, --destdir**           | full path of the destination directory where the backup file will be stored |
+| **-t, --filetype**          | file type of the backup file (zip or tar) (default: "zip") |
+| **-p, --prefix**            | prefix to be added to the backup file name (default: "backup") |
+| **-k, --keeplast**          | number of backups to keep (olders with the same prefix will be deleted) |
+| **-sp, --storageprovider**  | storage provider to use (local, s3) (default: "local", no config needed) |
+| **-y, --yes**               | answer yes to all questions (default: false) |
+| **-h, --help**              | display help for command |
 
 Usage:
 
@@ -92,6 +92,17 @@ Backup folder and keep only the last 10 backups on the destination directory:
 npx localbackup --source /path/to/source --destdir /path/to/backups-dest --keeplast 10
 ```
 
+Backup folder and keep only the last 10 backups using s3 as destination:
+
+```console
+export LOCALBACKUP_S3_ENDPOINT="s3.us-west-002.backblazeb2.com"
+export LOCALBACKUP_S3_BUCKET="mybucket"
+export LOCALBACKUP_S3_ACCESS_KEY="myaccesskey"
+export LOCALBACKUP_S3_SECRET_KEY="mysecretkey"
+
+npx localbackup --source /path/to/source --destdir /path/to/backups-dest --keeplast 10 --storageprovider s3
+```
+
 Backup single file:
 
 ```console
@@ -110,6 +121,26 @@ Run with no user confirmation (useful for cronjobs):
 npx localbackup --source /path/to/source --destdir /path/to/backups-dest --keeplast 10 --yes
 ```
 
+## Store backups in S3 bucket
+
+localbackup allows you to use an S3 bucket as a destination for your backups. To use this
+feature, you must first set up environment variables that tell localbackup which credentials
+to use to connect to S3:
+
+- **LOCALBACKUP_S3_ENDPOINT:** S3 endpoint (optional), useful for compatible providers, not necessary for native S3
+- **LOCALBACKUP_S3_BUCKET:** Bucket name (required)
+- **LOCALBACKUP_S3_ACCESS_KEY:** Access key (required)
+- **LOCALBACKUP_S3_SECRET_KEY:** Secret key (required)
+
+After setting up the environment variables, you can continue using localbackup normally, and to
+activate S3, you just need to add the `-sp (--storageprovider)` option to the command:
+
+```console
+npx localbackup --source /path/to/source --destdir /path/to/backups-dest --storageprovider s3
+```
+
+The above command creates backups and saves them to S3. All other options work the same way.
+
 ## Usage with cron jobs
 
 Cron jobs are scheduled tasks that run automatically at specified times or intervals on a
@@ -126,36 +157,3 @@ and only keep the last 10 backups:
 
 - Read more about cron jobs: https://www.freecodecamp.org/news/cron-jobs-in-linux/
 - Easily create cron expressions: https://crontab.guru/
-
-## Store backups remotely (FTP, S3, Backblaze, etc.)
-
-The localbackup tool only works locally, meaning that your backups are stored on the same hard drive
-as the original files. Although this option may be sufficient for many cases, it is always
-recommended to store your most important backups in secondary storage systems such as FTP or S3 so
-that you always have an option to access your files in case of a total loss of your local disk.
-
-localbackup can greatly simplify the backup creation process and is focused on being very easy to
-use. Once you have your backups on your local disk, there are several options for uploading them to
-secondary storage, including:
-
-- Manually upload files
-- Using specific tools for each service (AWS CLI, B2 CLI, etc)
-- Using universal tools (rclone recommended)
-
-### Use rclone (recommended)
-
-When you have your backup files ready thanks to localbackup, you can easily use rclone to upload
-them to a third-party storage like S3 or Google Drive.
-
-It's recommended to create a cron job that synchronizes your local backup folder with your remote
-storage. For example, the following cron expression will run every day at 2:00 PM and use rclone
-for this purpose:
-
-```console
-0 14 * * * rclone sync /path/to/local-backups remote:/path/to/destination
-```
-
-- rclone docs: https://rclone.org/docs/
-- rclone downloads: https://rclone.org/downloads/
-- Using rclone on Linux to Automate Backups to Google Drive: https://bit.ly/4049A7u
-- Install and Use rclone on Ubuntu: https://bit.ly/3LpCOd4
